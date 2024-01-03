@@ -1,12 +1,15 @@
-const CardModel = require("../models/card");
+const { CastError } = require('mongoose').Error;
+const CardModel = require('../models/card');
+const NotFoundError = require('../errors/NotFoundError');
+const BadRequestError = require('../errors/BadRequestError');
 
-//ВСЕ КАРТОЧКИ
+// ВСЕ КАРТОЧКИ
 const getCards = (req, res, next) => {
   CardModel.find({})
     .then((cards) => res.send(cards))
     .catch(next);
 };
-//СОЗДАНИЕ КАРТОЧКИ
+// СОЗДАНИЕ КАРТОЧКИ
 const createCard = async (req, res) => {
   try {
     console.log(req.user._id); // _id станет доступен
@@ -19,11 +22,12 @@ const createCard = async (req, res) => {
     return res.status(201).send(newCard);
   } catch (error) {
     console.error(error); // Вывод ошибки в консоль для дальнейшего анализа
-    return res.status(500).send({ message: "Ошибка сервера" });
+    return res.status(500).send({ message: 'Ошибка сервера' });
   }
 };
-//УДАЛЕНИЕ КАРТОЧКИ
-const deleteCardById = async (req, res, next) => {
+// УДАЛЕНИЕ КАРТОЧКИ
+// eslint-disable-next-line consistent-return
+const deleteCardById = async (req, res) => {
   try {
     const { cardId } = req.params;
     // Проверяем, существует ли карточка с указанным идентификатором
@@ -31,15 +35,15 @@ const deleteCardById = async (req, res, next) => {
     if (!card) {
       return res.status(404).json({ error: 'Карточка не найдена' });
     }
-    CardModel. findByIdAndDelete(req.params.cardId)
-    .then((delcard) => res.status(200).send(delcard));
+    CardModel.findByIdAndDelete(req.params.cardId)
+      .then((delcard) => res.status(200).send(delcard));
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Ошибка сервера' });
   }
 };
 
-//ПОСТАВИТЬ ЛАЙК
+// ПОСТАВИТЬ ЛАЙК
 const likeCard = (req, res, next) => {
   CardModel.findByIdAndUpdate(
     req.params.cardId,
@@ -59,7 +63,7 @@ const likeCard = (req, res, next) => {
       return next(err);
     });
 };
-//УБРАТЬ ЛАЙК
+// УБРАТЬ ЛАЙК
 const dislikeCard = (req, res, next) => {
   CardModel.findByIdAndUpdate(
     req.params.cardId,
@@ -86,5 +90,5 @@ module.exports = {
   createCard,
   deleteCardById,
   likeCard,
-  dislikeCard
+  dislikeCard,
 };
