@@ -6,8 +6,8 @@ const appRouter = require('./routes/index');
 
 const app = express();
 
-const { PORT, MONGO_URL } = process.env;
-mongoose.connect(MONGO_URL);
+const { PORT } = process.env;
+mongoose.connect('mongodb://localhost:27017/mestodb');
 app.use(express.json());
 // мидлвар, который обоготит объект реквеста полем бади, когда этот бади будет полностью прочитан
 // роутер
