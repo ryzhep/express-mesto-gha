@@ -6,7 +6,6 @@ const appRouter = require('./routes/index');
 
 const app = express();
 
-const { PORT } = process.env;
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
 app.use(express.json());
 // мидлвар, который обоготит объект реквеста полем бади, когда этот бади будет полностью прочитан
@@ -21,7 +20,7 @@ app.use((req, res, next) => {
 });
 app.use(appRouter);
 
-const port = PORT;
+const port = 3000;
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
