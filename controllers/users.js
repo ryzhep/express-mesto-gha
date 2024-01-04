@@ -15,22 +15,23 @@ const getUsers = async (req, res) => {
   }
 };
 // ПОЛЬЗОВАИТЕЛЬ ПО АЙДИ
-const getUserById = async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const user = await UserModel.findById(userId).orFail(
-      () => new Error('NotFoundError'),
-    );
-    return res.status(200).send(user);
-  } catch (error) {
-    if (error.message === 'NotFoundError') {
-      return res.status(404).send({ message: 'Нет такого пользователя' });
-    }
-    if (error.message === 'CastError') {
-      return res.status(400).send({ message: 'Невалидный поиск' });
-    }
-    return res.status(500).send({ message: 'Ошибка сервера' });
-  }
+const getUserById = (req, res, next) => {
+  const { userId } = req.params;
+
+  UserModel.findById(userId)
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError('Такого пользователя не существует');
+      }
+      res.send(user);
+    })
+    .catch((err) => {
+      if (err instanceof CastError) {
+        next(new BadRequestError('Некорректный id пользователя'));
+      } else {
+        next(err);
+      }
+    });
 };
 // СОЗДАНИЕ ПОЛЬЗОВАТЕЛЯ
 // eslint-disable-next-line consistent-return
