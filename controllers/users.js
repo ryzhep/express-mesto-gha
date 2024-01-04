@@ -1,4 +1,4 @@
-const { CastError } = require('mongoose').Error;
+const { CastError, ValidationError } = require('mongoose').Error;
 const NotFoundError = require('../errors/NotFoundError');
 const BadRequestError = require('../errors/BadRequestError');
 
@@ -33,14 +33,23 @@ const getUserById = async (req, res) => {
   }
 };
 // СОЗДАНИЕ ПОЛЬЗОВАТЕЛЯ
-const createUser = async (req, res) => {
+// eslint-disable-next-line consistent-return
+const createUser = async (req, res, next) => {
   try {
     const newUser = await UserModel.create(req.body);
     return res.status(201).send(newUser);
-  } catch (error) {
-    return res.status(500).send({ message: 'Ошибка сервера' });
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const errorMessage = Object.values(err.errors)
+        .map((error) => error.message)
+        .join(', ');
+      next(new BadRequestError(`Некорректные данные: ${errorMessage}`));
+    } else {
+      return res.status(500).send({ message: 'Ошибка сервера' });
+    }
   }
 };
+
 // ОБНОВЛЕНИЕ ПОЛЬЗОВАТЕЛЯ
 const updateUser = (req, res, next) => {
   const owner = req.user._id;
@@ -49,6 +58,7 @@ const updateUser = (req, res, next) => {
     { name: req.body.name, about: req.body.about },
     {
       new: true,
+      runValidators: true,
     },
   )
     .then((user) => {
@@ -58,13 +68,10 @@ const updateUser = (req, res, next) => {
       res.send(user);
     })
     .catch((err) => {
-      if (err instanceof CastError) {
-        next(new BadRequestError('Некорректный id пользователя'));
-      } else {
-        next(err);
-      }
+      next(err);
     });
 };
+
 // ОБНОВЛЕНИЕ АВАТАРА ПОЛЬЗОВАТЕЛЯ
 const updateUserAvatar = (req, res, next) => {
   const owner = req.user._id;
@@ -74,6 +81,7 @@ const updateUserAvatar = (req, res, next) => {
     { avatar: req.body.avatar },
     {
       new: true,
+      runValidators: true,
     },
   )
     .then((user) => {

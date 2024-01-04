@@ -1,4 +1,4 @@
-const { CastError } = require('mongoose').Error;
+const { CastError, ValidationError } = require('mongoose').Error;
 const CardModel = require('../models/card');
 const NotFoundError = require('../errors/NotFoundError');
 const BadRequestError = require('../errors/BadRequestError');
@@ -9,37 +9,43 @@ const getCards = (req, res, next) => {
     .then((cards) => res.send(cards))
     .catch(next);
 };
+
 // СОЗДАНИЕ КАРТОЧКИ
-const createCard = async (req, res) => {
-  try {
-    console.log(req.user._id); // _id станет доступен
-    const { name, link } = req.body;
-    if (!name || !link) {
-      // Если значения полей отсутствуют или равны undefined, выдаем сообщение об ошибке
-      return res.status(400).json({ error: 'Неверно заданы поля' });
-    }
-    const newCard = await CardModel.create(req.body);
-    return res.status(201).send(newCard);
-  } catch (error) {
-    console.error(error); // Вывод ошибки в консоль для дальнейшего анализа
-    return res.status(500).send({ message: 'Ошибка сервера' });
-  }
+const createCard = async (req, res, next) => {
+  console.log(req.user._id); // _id станет доступен
+  const { name, link } = req.body;
+  const { _id: userId } = req.user;
+  CardModel.create({ name, link, owner: userId })
+    .then((card) => res.status(201).send(card))
+    .catch((err) => {
+      if (err instanceof ValidationError) {
+        const errorMessage = Object.values(err.errors)
+          .map((error) => error.message)
+          .join(' ');
+        next(new BadRequestError(`Некорректные данные: ${errorMessage}`));
+      } else {
+        next(err);
+      }
+    });
 };
 // УДАЛЕНИЕ КАРТОЧКИ
 // eslint-disable-next-line consistent-return
-const deleteCardById = async (req, res) => {
+const deleteCardById = async (req, res, next) => {
   try {
     const { cardId } = req.params;
     // Проверяем, существует ли карточка с указанным идентификатором
     const card = await CardModel.findById(cardId);
     if (!card) {
-      return res.status(404).json({ error: 'Карточка не найдена' });
+      throw new NotFoundError('Такой карточки не существует');
     }
     CardModel.findByIdAndDelete(req.params.cardId)
       .then((delcard) => res.status(200).send(delcard));
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: 'Ошибка сервера' });
+  } catch (err) {
+    if (err instanceof CastError) {
+      next(new BadRequestError('Некорректный id карточки'));
+    } else {
+      next(err);
+    }
   }
 };
 
