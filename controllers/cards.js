@@ -16,7 +16,7 @@ const createCard = async (req, res, next) => {
   const { name, link } = req.body;
   const { _id: userId } = req.user;
   CardModel.create({ name, link, owner: userId })
-    .then((card) => res.status(201).send(card))
+    .then((card) => res.status(201).json(card))
     .catch((err) => {
       if (err instanceof ValidationError) {
         const errorMessage = Object.values(err.errors)
@@ -28,6 +28,7 @@ const createCard = async (req, res, next) => {
       }
     });
 };
+
 // УДАЛЕНИЕ КАРТОЧКИ
 // eslint-disable-next-line consistent-return
 const deleteCardById = async (req, res, next) => {

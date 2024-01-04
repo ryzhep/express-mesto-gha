@@ -23,7 +23,7 @@ const getUserById = (req, res, next) => {
       if (!user) {
         throw new NotFoundError('Такого пользователя не существует');
       }
-      res.send(user);
+      res.json(user);
     })
     .catch((err) => {
       if (err instanceof CastError) {
@@ -33,22 +33,28 @@ const getUserById = (req, res, next) => {
       }
     });
 };
+
 // СОЗДАНИЕ ПОЛЬЗОВАТЕЛЯ
-// eslint-disable-next-line consistent-return
-const createUser = async (req, res, next) => {
-  try {
-    const newUser = await UserModel.create(req.body);
-    return res.status(201).send(newUser);
-  } catch (err) {
-    if (err instanceof ValidationError) {
-      const errorMessage = Object.values(err.errors)
-        .map((error) => error.message)
-        .join(', ');
-      next(new BadRequestError(`Некорректные данные: ${errorMessage}`));
-    } else {
-      return res.status(500).send({ message: 'Ошибка сервера' });
-    }
-  }
+const createUser = (req, res, next) => {
+  const {
+    name, about, avatar,
+  } = req.body;
+  UserModel.create({
+    name,
+    about,
+    avatar,
+  })
+    .then((user) => res.status(201).send({ data: user }))
+    .catch((err) => {
+      if (err instanceof ValidationError) {
+        const errorMessage = Object.values(err.errors)
+          .map((error) => error.message)
+          .join(', ');
+        next(new BadRequestError(`Некорректные данные: ${errorMessage}`));
+      } else {
+        next(err);
+      }
+    });
 };
 
 // ОБНОВЛЕНИЕ ПОЛЬЗОВАТЕЛЯ

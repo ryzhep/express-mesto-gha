@@ -19,6 +19,7 @@ app.use((req, res, next) => {
   next();
 });
 app.use(appRouter);
+app.use(express.json()); // сборка JSON-формата
 
 const port = 3000;
 
