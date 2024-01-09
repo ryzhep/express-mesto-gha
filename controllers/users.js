@@ -18,7 +18,7 @@ const getUsers = async (req, res) => {
 const getUserById = (req, res, next) => {
   const { userId } = req.params;
 
-  UserModel.findById(userId)
+  return UserModel.findById(userId)
     .then((user) => {
       if (!user) {
         throw new NotFoundError('Такого пользователя не существует');
@@ -60,7 +60,7 @@ const createUser = (req, res, next) => {
 // ОБНОВЛЕНИЕ ПОЛЬЗОВАТЕЛЯ
 const updateUser = (req, res, next) => {
   const owner = req.user._id;
-  UserModel.findByIdAndUpdate(
+  return UserModel.findByIdAndUpdate(
     owner,
     { name: req.body.name, about: req.body.about },
     {
@@ -75,10 +75,16 @@ const updateUser = (req, res, next) => {
       res.send(user);
     })
     .catch((err) => {
-      next(err);
+      if (err instanceof ValidationError) {
+        const errorMessage = Object.values(err.errors)
+          .map((error) => error.message)
+          .join(', ');
+        next(new BadRequestError(`Некорректные данные: ${errorMessage}`));
+      } else {
+        next(err);
+      }
     });
 };
-
 // ОБНОВЛЕНИЕ АВАТАРА ПОЛЬЗОВАТЕЛЯ
 const updateUserAvatar = (req, res, next) => {
   const owner = req.user._id;
