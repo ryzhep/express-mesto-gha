@@ -12,7 +12,6 @@ const getCards = (req, res, next) => {
 
 // СОЗДАНИЕ КАРТОЧКИ
 const createCard = async (req, res, next) => {
-  console.log(req.user._id); // _id станет доступен
   const { name, link } = req.body;
   const { _id: userId } = req.user;
   return CardModel.create({ name, link, owner: userId })
