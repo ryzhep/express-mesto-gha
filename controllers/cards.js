@@ -38,7 +38,7 @@ const deleteCardById = async (req, res, next) => {
     if (!card) {
       throw new NotFoundError('Такой карточки не существует');
     }
-    CardModel.findByIdAndDelete(req.params.cardId)
+    return CardModel.findByIdAndDelete(req.params.cardId)
       .then((delcard) => res.status(200).send(delcard));
   } catch (err) {
     if (err instanceof CastError) {
