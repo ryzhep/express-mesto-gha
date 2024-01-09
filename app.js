@@ -3,6 +3,7 @@ const express = require('express');
 const dotenv = require('dotenv/config');
 const mongoose = require('mongoose');
 const appRouter = require('./routes/index');
+const errorHandler = require('./errors/errorHandler');
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use((req, res, next) => {
 });
 app.use(appRouter);
 app.use(express.json()); // сборка JSON-формата
+app.use(errorHandler); // централизолванная обработка ошибок
 
 const port = 3000;
 
