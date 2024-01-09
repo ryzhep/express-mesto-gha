@@ -15,7 +15,7 @@ const createCard = async (req, res, next) => {
   console.log(req.user._id); // _id станет доступен
   const { name, link } = req.body;
   const { _id: userId } = req.user;
-  CardModel.create({ name, link, owner: userId })
+  return CardModel.create({ name, link, owner: userId })
     .then((card) => res.status(201).json(card))
     .catch((err) => {
       if (err instanceof ValidationError) {
