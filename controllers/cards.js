@@ -3,6 +3,9 @@ const CardModel = require('../models/card');
 const NotFoundError = require('../errors/NotFoundError');
 const BadRequestError = require('../errors/BadRequestError');
 
+const NotError = 200;
+const { CREATED_201 } = require('../utils/constants');
+
 // ВСЕ КАРТОЧКИ
 const getCards = (req, res, next) => {
   CardModel.find({})
@@ -15,7 +18,7 @@ const createCard = async (req, res, next) => {
   const { name, link } = req.body;
   const { _id: userId } = req.user;
   return CardModel.create({ name, link, owner: userId })
-    .then((card) => res.status(201).json(card))
+    .then((card) => res.status(CREATED_201).json(card))
     .catch((err) => {
       if (err instanceof ValidationError) {
         const errorMessage = Object.values(err.errors)
@@ -39,7 +42,7 @@ const deleteCardById = async (req, res, next) => {
       throw new NotFoundError('Такой карточки не существует');
     }
     return CardModel.findByIdAndDelete(req.params.cardId)
-      .then((delcard) => res.status(200).send(delcard));
+      .then((delcard) => res.status(NotError).send(delcard));
   } catch (err) {
     if (err instanceof CastError) {
       next(new BadRequestError('Некорректный id карточки'));

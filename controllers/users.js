@@ -1,17 +1,25 @@
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+
+const { JWT_SECRET } = process.env;
 const { CastError, ValidationError } = require('mongoose').Error;
 const NotFoundError = require('../errors/NotFoundError');
 const BadRequestError = require('../errors/BadRequestError');
+const ConflictError = require('../errors/ConflictError');
 
 const UserModel = require('../models/user');
+
+const NotError = 200;
+const ServerError = 500;
 
 // ВСЕ ПОЛЬЗОВАТЕЛИ
 // eslint-disable-next-line consistent-return
 const getUsers = async (req, res) => {
   try {
     const users = await UserModel.find({});
-    res.status(200).send(users);
+    res.status(NotError).send(users);
   } catch (error) {
-    return res.status(500).send({ message: 'Ошибка на стороне сервера' });
+    return res.status(ServerError).send({ message: 'Ошибка на стороне сервера' });
   }
 };
 // ПОЛЬЗОВАИТЕЛЬ ПО АЙДИ
@@ -33,19 +41,44 @@ const getUserById = (req, res, next) => {
       }
     });
 };
+// возвращает информацию о текущем пользователе
+const getCurrentUser = (req, res, next) => {
+  const { _id } = req.user;
+  UserModel.findById(_id)
+    .orFail(() => new NotFoundError('Пользователь не найден'))
+    .then((user) => {
+      res.status(NotError).send({ data: user });
+    })
+    .catch((err) => {
+      if (err instanceof CastError) {
+        return next(new BadRequestError('Некорректный id пользователя'));
+      }
+      return next(err);
+    });
+};
 
 // СОЗДАНИЕ ПОЛЬЗОВАТЕЛЯ
 const createUser = (req, res, next) => {
   const {
-    name, about, avatar,
+    name, about, avatar, email, password,
   } = req.body;
-  UserModel.create({
-    name,
-    about,
-    avatar,
-  })
+  bcrypt
+    .hash(password, 10)
+    .then((hash) => UserModel.create({
+      name,
+      about,
+      avatar,
+      email,
+      password: hash,
+    }))
     .then((user) => res.status(201).send({ data: user }))
     .catch((err) => {
+      if (err.code === 11000) {
+        next(
+          new ConflictError('Пользователь с таким email уже зарегистрирован'),
+        );
+        return;
+      }
       if (err instanceof ValidationError) {
         const errorMessage = Object.values(err.errors)
           .map((error) => error.message)
@@ -112,10 +145,31 @@ const updateUserAvatar = (req, res, next) => {
     });
 };
 
+const login = (req, res, next) => {
+  const { email } = req.body;
+
+  UserModel.findOne({ email }).select('+password')
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
+        expiresIn: '7d',
+      });
+      res
+        .cookie('jwt', token, {
+          maxAge: 3600000,
+          httpOnly: true,
+          sameSite: true,
+        })
+        .send({ token });
+    })
+    .catch(next);
+};
+
 module.exports = {
   getUsers,
   getUserById,
+  login,
   createUser,
   updateUser,
   updateUserAvatar,
+  getCurrentUser,
 };

@@ -1,0 +1,19 @@
+const { JWT_SECRET } = process.env;
+const jwt = require('jsonwebtoken');
+
+const UnauthorizedError = require('../errors/UnauthorizedError');
+
+module.exports = (req, res, next) => {
+  const token = req.cookies.jwt;
+  if (!token) {
+    return next(new UnauthorizedError('Проблема с токеном'));
+  }
+  let payload;
+  try {
+    payload = jwt.verify(token, JWT_SECRET);
+  } catch (err) {
+    return next(new UnauthorizedError('Проблема с токеном'));
+  }
+  req.user = payload; // записываем пейлоуд в объект запроса
+  return next(); // пропускаем запрос дальше
+};
