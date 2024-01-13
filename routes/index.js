@@ -9,12 +9,12 @@ const {
   loginValidator,
 } = require('../middlewares/userValidator');
 
-router.use('/users', auth, usersRouter); // роутеры для пользователей
-router.use('/cards', auth, cardsRouter); // роутеры для карточек
-
 // роуты, которые не требуют авторизации (регистрация и логин)
 router.post('/signup', createUserValidator, createUser); // роутер для регистрации
 router.post('/signin', loginValidator, login); // роутер для авторизации
+
+router.use('/users', auth, usersRouter); // роутеры для пользователей
+router.use('/cards', auth, cardsRouter); // роутеры для карточек
 
 // роут для запросов по несуществующим URL
 

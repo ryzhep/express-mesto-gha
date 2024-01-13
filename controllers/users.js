@@ -1,8 +1,8 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
-const { JWT_SECRET } = process.env;
 const { CastError, ValidationError } = require('mongoose').Error;
+const { JWT_SECRET } = require('../utils/config');
 const NotFoundError = require('../errors/NotFoundError');
 const BadRequestError = require('../errors/BadRequestError');
 const ConflictError = require('../errors/ConflictError');
@@ -22,6 +22,7 @@ const getUsers = async (req, res) => {
     return res.status(ServerError).send({ message: 'Ошибка на стороне сервера' });
   }
 };
+
 // ПОЛЬЗОВАИТЕЛЬ ПО АЙДИ
 const getUserById = (req, res, next) => {
   const { userId } = req.params;
@@ -146,9 +147,9 @@ const updateUserAvatar = (req, res, next) => {
 };
 
 const login = (req, res, next) => {
-  const { email } = req.body;
+  const { email, password } = req.body;
 
-  UserModel.findOne({ email }).select('+password')
+  UserModel.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
         expiresIn: '7d',

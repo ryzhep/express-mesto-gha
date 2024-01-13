@@ -1,13 +1,12 @@
 const mongoose = require('mongoose');
 
-// Импорт валидаторов
+// Импорт валидатора
 const isEmail = require('validator/lib/isEmail');
 
 const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
       minlength: 2,
       maxlength: 30,
       default: 'Жак-Ив Кусто',
@@ -16,12 +15,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       minlength: 2,
       maxlength: 30,
-      required: true,
       default: 'Исследователь',
     },
     avatar: {
       type: String,
-      required: true,
       validate: {
         validator: (value) => {
           const urlRegex = /^(https?:\/\/)?(www\.)?[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(\/[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]*)?$/;
