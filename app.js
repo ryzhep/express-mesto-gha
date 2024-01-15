@@ -2,6 +2,8 @@ const express = require('express');
 // eslint-disable-next-line no-unused-vars
 require('dotenv').config();
 const mongoose = require('mongoose');
+const { errors } = require('celebrate');
+
 const appRouter = require('./routes/index');
 const errorHandler = require('./middlewares/errorHandler');
 
@@ -24,7 +26,7 @@ app.use((req, res, next) => {
 });
 */
 app.use(appRouter);
-app.use(express.json()); // сборка JSON-формата
+app.use(errors()); // сборка JSON-формата
 app.use(errorHandler); // централизолванная обработка ошибок
 
 const port = 3000;

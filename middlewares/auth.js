@@ -1,19 +1,24 @@
 const jwt = require('jsonwebtoken');
-const { JWT_SECRET } = require('../utils/config');
 
 const UnauthorizedError = require('../errors/UnauthorizedError');
 
-module.exports = (req, res, next) => {
-  const token = req.cookies.jwt;
+// eslint-disable-next-line consistent-return
+const auth = (req, res, next) => {
+  const token = req.headers.authorization
+    ? req.headers.authorization.replace('Bearer ', '')
+    : null;
   if (!token) {
-    return next(new UnauthorizedError('Проблема с токеном'));
+    return next(new UnauthorizedError('Требуется авторизация'));
   }
-  let payload;
+
   try {
-    payload = jwt.verify(token, JWT_SECRET);
+    const payload = jwt.verify(token, 'dev_secret');
+    req.user = payload;
+    next();
   } catch (err) {
-    return next(new UnauthorizedError('Проблема с токеном'));
+    console.error('Auth Middleware: Ошибка при проверке токена', err);
+    next(new UnauthorizedError('Неверный токен'));
   }
-  req.user = payload; // записываем пейлоуд в объект запроса
-  return next(); // пропускаем запрос дальше
 };
+
+module.exports = auth;

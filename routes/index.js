@@ -1,7 +1,9 @@
 const router = require('express').Router();
-const auth = require('../middlewares/auth');
 const usersRouter = require('./users');
 const cardsRouter = require('./cards');
+
+const auth = require('../middlewares/auth');
+
 const NotFoundError = require('../errors/NotFoundError');
 const { createUser, login } = require('../controllers/users');
 const {
@@ -19,7 +21,7 @@ router.use('/cards', cardsRouter); // роутеры для карточек
 
 // роут для запросов по несуществующим URL
 
-router.use('*', auth, (req, res, next) => {
+router.use('*', (req, res, next) => {
   next(
     new NotFoundError(
       'Страница не найдена. Проверьте правильность ввода URL и метод запроса',
