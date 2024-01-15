@@ -1,5 +1,7 @@
 const httpConstants = require('http2').constants;
 
+const regEx = /https?:\/\/w{0,3}\.?[\w0-9-]{1,10}\.\w{2,3}[\w\d\-._~:/?#[\]@!$&'()*+,;=]{0,}/m;
+
 const {
   HTTP_STATUS_BAD_REQUEST: BAD_REQUEST_400,
   HTTP_STATUS_NOT_FOUND: NOT_FOUND_404,
@@ -7,6 +9,7 @@ const {
   CHTTP_STATUS_CREATED: CREATED_201,
   HTTP_STATUS_UNAUTHORIZED: UNAUTHORIZED_401,
   HTTP_STATUS_CONFLICT: CONFLICT_409,
+  HTTP_STATUS_FORBIDDEN: FORBIDDEN_403,
 } = httpConstants;
 
 module.exports = {
@@ -16,4 +19,6 @@ module.exports = {
   CREATED_201,
   UNAUTHORIZED_401,
   CONFLICT_409,
+  regEx,
+  FORBIDDEN_403,
 };

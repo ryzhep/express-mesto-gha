@@ -2,8 +2,8 @@ const { CastError, ValidationError } = require('mongoose').Error;
 const CardModel = require('../models/card');
 const NotFoundError = require('../errors/NotFoundError');
 const BadRequestError = require('../errors/BadRequestError');
+const ForbiddenError = require('../errors/ForbiddenError');
 
-const NotError = 200;
 const { CREATED_201 } = require('../utils/constants');
 
 // ВСЕ КАРТОЧКИ
@@ -32,24 +32,27 @@ const createCard = async (req, res, next) => {
 };
 
 // УДАЛЕНИЕ КАРТОЧКИ
-// eslint-disable-next-line consistent-return
-const deleteCardById = async (req, res, next) => {
-  try {
-    const { cardId } = req.params;
-    // Проверяем, существует ли карточка с указанным идентификатором
-    const card = await CardModel.findById(cardId);
-    if (!card) {
-      throw new NotFoundError('Такой карточки не существует');
-    }
-    return CardModel.findByIdAndDelete(req.params.cardId)
-      .then((delcard) => res.status(NotError).send(delcard));
-  } catch (err) {
-    if (err instanceof CastError) {
-      next(new BadRequestError('Некорректный id карточки'));
-    } else {
-      next(err);
-    }
-  }
+const deleteCardById = (req, res, next) => {
+  const { cardId } = req.params;
+  const { _id: userId } = req.user;
+
+  CardModel.findById(cardId)
+    .then((card) => {
+      if (!card) {
+        throw new NotFoundError('Такой карточки не существует');
+      }
+      if (userId !== card.owner.toString()) {
+        throw new ForbiddenError('Нельзя удалить чужую карточку');
+      }
+      return CardModel.findByIdAndRemove(cardId).then(() => res.send({ message: 'Карточка удалена' }));
+    })
+    .catch((err) => {
+      if (err instanceof CastError) {
+        next(new BadRequestError('Некорректный id карточки'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 // ПОСТАВИТЬ ЛАЙК

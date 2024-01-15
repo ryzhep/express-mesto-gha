@@ -13,8 +13,9 @@ const {
 router.post('/signup', createUserValidator, createUser); // роутер для регистрации
 router.post('/signin', loginValidator, login); // роутер для авторизации
 
-router.use('/users', auth, usersRouter); // роутеры для пользователей
-router.use('/cards', auth, cardsRouter); // роутеры для карточек
+router.use(auth);
+router.use('/users', usersRouter); // роутеры для пользователей
+router.use('/cards', cardsRouter); // роутеры для карточек
 
 // роут для запросов по несуществующим URL
 

@@ -8,6 +8,7 @@ const BadRequestError = require('../errors/BadRequestError');
 const ConflictError = require('../errors/ConflictError');
 
 const UserModel = require('../models/user');
+const { CREATED_201 } = require('../utils/constants');
 
 const NotError = 200;
 const ServerError = 500;
@@ -72,7 +73,7 @@ const createUser = (req, res, next) => {
       email,
       password: hash,
     }))
-    .then((user) => res.status(201).send({ data: user }))
+    .then((user) => res.status(CREATED_201).send({ data: user }))
     .catch((err) => {
       if (err.code === 11000) {
         next(
@@ -147,9 +148,9 @@ const updateUserAvatar = (req, res, next) => {
 };
 
 const login = (req, res, next) => {
-  const { email, password } = req.body;
+  const { email } = req.body;
 
-  UserModel.findUserByCredentials(email, password)
+  UserModel.findOne({ email }).select('+password')
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
         expiresIn: '7d',
