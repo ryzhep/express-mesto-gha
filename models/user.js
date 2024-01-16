@@ -42,7 +42,6 @@ const userSchema = new mongoose.Schema(
       select: false,
     },
   },
-  { versionKey: false },
 
 );
 
