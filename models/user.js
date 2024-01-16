@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 // Импорт валидатора
 const isEmail = require('validator/lib/isEmail');
+const isUrl = require('validator/lib/isURL');
 
 const userSchema = new mongoose.Schema(
   {
@@ -20,11 +21,8 @@ const userSchema = new mongoose.Schema(
     avatar: {
       type: String,
       validate: {
-        validator: (value) => {
-          const urlRegex = /^(https?:\/\/)?(www\.)?[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(\/[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]*)?$/;
-          return urlRegex.test(value);
-        },
-        message: 'Некорректный формат ссылки на аватар',
+        validator: (url) => isUrl(url),
+        message: 'неправильная ссылка',
       },
       default:
         'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
