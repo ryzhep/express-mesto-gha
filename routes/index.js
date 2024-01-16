@@ -5,15 +5,6 @@ const cardsRouter = require('./cards');
 const auth = require('../middlewares/auth');
 
 const NotFoundError = require('../errors/NotFoundError');
-const { createUser, login } = require('../controllers/users');
-const {
-  createUserValidator,
-  loginValidator,
-} = require('../middlewares/userValidator');
-
-// роуты, которые не требуют авторизации (регистрация и логин)
-router.post('/signup', createUserValidator, createUser); // роутер для регистрации
-router.post('/signin', loginValidator, login); // роутер для авторизации
 
 router.use(auth);
 router.use('/users', usersRouter); // роутеры для пользователей
