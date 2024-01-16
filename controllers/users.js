@@ -155,7 +155,8 @@ const updateUserAvatar = (req, res, next) => {
 };
 
 const login = (req, res, next) => {
-  const { email, password } = req.body; // получает из запроса почту и пароль
+  const { email, password } = req.body;
+
   return UserModel.findOne({ email })
     .select('+password')
     .then((user) => {
