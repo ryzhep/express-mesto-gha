@@ -27,8 +27,8 @@ app.use((req, res, next) => {
 */
 
 app.use(appRouter);
-app.use(errorHandler); // централизолванная обработка ошибок
 app.use(errors()); // сборка JSON-формата
+app.use(errorHandler); // централизолванная обработка ошибок
 
 const port = 3000;
 
