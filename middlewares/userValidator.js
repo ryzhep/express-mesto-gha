@@ -1,13 +1,14 @@
 const { celebrate, Joi } = require('celebrate');
-const { regEx } = require('../utils/constants');
+
+const validURL = /^(https?:\/\/)?([\w-]{1,32}\.[\w-]{1,32})[^\s@]*/;
 
 const createUserValidator = celebrate({
   body: Joi.object().keys({
-    email: Joi.string().required().email(),
-    password: Joi.string().required(),
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(30),
-    avatar: Joi.string().regex(regEx),
+    avatar: Joi.string().pattern(validURL),
+    email: Joi.string().required().email(),
+    password: Joi.string().required(),
   }),
 });
 
@@ -33,7 +34,7 @@ const userDataValidator = celebrate({
 
 const userAvatarValidator = celebrate({
   body: Joi.object().keys({
-    avatar: Joi.string().required().regex(regEx),
+    avatar: Joi.string().required().regex(validURL),
   }),
 });
 
