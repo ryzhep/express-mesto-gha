@@ -25,8 +25,8 @@ app.use((req, res, next) => {
   next();
 });
 */
-app.use(appRouter);
 
+app.use(appRouter);
 app.use(errorHandler); // централизолванная обработка ошибок
 app.use(errors()); // сборка JSON-формата
 
