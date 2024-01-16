@@ -20,7 +20,9 @@ const getUsers = async (req, res) => {
     const users = await UserModel.find({});
     res.status(NotError).send(users);
   } catch (error) {
-    return res.status(ServerError).send({ message: 'Ошибка на стороне сервера' });
+    return res
+      .status(ServerError)
+      .send({ message: 'Ошибка на стороне сервера' });
   }
 };
 
@@ -62,34 +64,39 @@ const getCurrentUser = (req, res, next) => {
 // СОЗДАНИЕ ПОЛЬЗОВАТЕЛЯ
 const createUser = (req, res, next) => {
   const {
-    name, about, avatar, email, password,
+    name,
+    about,
+    avatar,
+    email,
+    password,
   } = req.body;
   bcrypt
     .hash(password, 10)
-    .then((hash) => UserModel.create({
-      name,
-      about,
-      avatar,
-      email,
-      password: hash,
-    }))
-    .then((user) => res.status(CREATED_201).send({ data: user }))
-    .catch((err) => {
-      if (err.code === 11000) {
-        next(
-          new ConflictError('Пользователь с таким email уже зарегистрирован'),
-        );
-        return;
-      }
-      if (err instanceof ValidationError) {
-        const errorMessage = Object.values(err.errors)
-          .map((error) => error.message)
-          .join(', ');
-        next(new BadRequestError(`Некорректные данные: ${errorMessage}`));
-      } else {
-        next(err);
-      }
-    });
+    .then((hash) => {
+      UserModel.create({
+        name,
+        about,
+        avatar,
+        email,
+        password: hash,
+      })
+        .then(() => res.status(CREATED_201).json({
+          name,
+          about,
+          avatar,
+          email,
+        }))
+        .catch((err) => {
+          if (err.code === 11000) {
+            return next(new ConflictError('Такой email уже существует')); // 409
+          }
+          if (err.name === 'ValidationError') {
+            return next(new BadRequestError('Ошибка валидации'));
+          }
+          return next(err);
+        });
+    })
+    .catch(next);
 };
 
 // ОБНОВЛЕНИЕ ПОЛЬЗОВАТЕЛЯ
@@ -149,22 +156,28 @@ const updateUserAvatar = (req, res, next) => {
 
 const login = (req, res, next) => {
   const { email, password } = req.body; // получает из запроса почту и пароль
-  return UserModel.findOne({ email }).select('+password')
+  return UserModel.findOne({ email })
+    .select('+password')
     .then((user) => {
       if (!user) {
-        return Promise.reject(new UnauthorizedError('Неправильные почта или пароль'));
+        return Promise.reject(
+          new UnauthorizedError('Неправильные почта или пароль'),
+        );
       }
 
-      return bcrypt.compare(password, user.password)
-        .then((matched) => {
-          if (!matched) {
-            return Promise.reject(new UnauthorizedError('Неправильные почта или пароль'));
-          }
-          return res.status(200).send({
-            message: 'Успешно авторизован',
-            token: jwt.sign({ _id: user._id }, 'super-strong-secret', { expiresIn: '7d' }),
-          });
+      return bcrypt.compare(password, user.password).then((matched) => {
+        if (!matched) {
+          return Promise.reject(
+            new UnauthorizedError('Неправильные почта или пароль'),
+          );
+        }
+        return res.status(200).send({
+          message: 'Успешно авторизован',
+          token: jwt.sign({ _id: user._id }, 'super-strong-secret', {
+            expiresIn: '7d',
+          }),
         });
+      });
     })
     .catch(() => next(new UnauthorizedError('ошибка')))
     .catch(next);
