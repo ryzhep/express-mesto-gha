@@ -4,22 +4,20 @@ const UnauthorizedError = require('../errors/UnauthorizedError');
 const ForbiddenError = require('../errors/UnauthorizedError');
 
 // eslint-disable-next-line consistent-return
-const auth = (req, res, next) => {
-  const token = req.headers.authorization
-    ? req.headers.authorization.replace('Bearer ', '')
-    : null;
-  if (!token) {
-    return next(new ForbiddenError('Требуется авторизация'));
+module.exports = (req, res, next) => {
+  const { authorization } = req.headers;
+  if (!authorization || !authorization.startsWith('Bearer ')) {
+    return next(new ForbiddenError('Требуется регистрация'));
   }
+  const token = authorization.replace('Bearer ', '');
+  let payload;
 
   try {
-    const payload = jwt.verify(token, 'dev_secret');
-    req.user = payload;
-    next();
+    payload = jwt.verify(token, 'super-strong-secret');
   } catch (err) {
-    console.error('Auth Middleware: Ошибка при проверке токена', err);
-    next(new UnauthorizedError('Неверный токен'));
+    throw new UnauthorizedError('Требуется авторизация');
   }
-};
 
-module.exports = auth;
+  req.user = payload;
+  next();
+};
