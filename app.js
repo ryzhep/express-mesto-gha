@@ -3,6 +3,7 @@ const express = require('express');
 require('dotenv').config();
 const mongoose = require('mongoose');
 const { errors } = require('celebrate');
+const router = require('express').Router();
 
 const appRouter = require('./routes/index');
 const errorHandler = require('./middlewares/errorHandler');
@@ -25,10 +26,20 @@ app.use((req, res, next) => {
   next();
 });
 */
+const { createUser, login } = require('./controllers/users');
 
 app.use(appRouter);
-app.use(errors()); // сборка JSON-формата
+const {
+  createUserValidator,
+  loginValidator,
+} = require('./middlewares/validator');
+
+// роуты, которые не требуют авторизации (регистрация и логин)
+router.post('/signup', createUserValidator, createUser); // роутер для регистрации
+router.post('/signin', loginValidator, login); // роутер для авторизации
+
 app.use(errorHandler); // централизолванная обработка ошибок
+app.use(errors()); // сборка JSON-формата
 
 const port = 3000;
 

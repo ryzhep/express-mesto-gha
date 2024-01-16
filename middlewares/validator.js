@@ -1,4 +1,4 @@
-const { celebrate, Joi } = require('celebrate');
+const { Joi, celebrate } = require('celebrate');
 
 const validURL = /^(https?:\/\/)?([\w-]{1,32}\.[\w-]{1,32})[^\s@]*/;
 
