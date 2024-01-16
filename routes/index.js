@@ -9,7 +9,7 @@ const { createUser, login } = require('../controllers/users');
 const {
   createUserValidator,
   loginValidator,
-} = require('../middlewares/userValidator');
+} = require('../middlewares/validator');
 
 // роуты, которые не требуют авторизации (регистрация и логин)
 router.post('/signup', createUserValidator, createUser); // роутер для регистрации
