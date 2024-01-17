@@ -11,19 +11,13 @@ const UserModel = require('../models/user');
 const { CREATED_201 } = require('../utils/constants');
 
 const NotError = 200;
-const ServerError = 500;
 
 // ВСЕ ПОЛЬЗОВАТЕЛИ
 // eslint-disable-next-line consistent-return
-const getUsers = async (req, res) => {
-  try {
-    const users = await UserModel.find({});
-    res.status(NotError).send(users);
-  } catch (error) {
-    return res
-      .status(ServerError)
-      .send({ message: 'Ошибка на стороне сервера' });
-  }
+const getUsers = (req, res, next) => {
+  UserModel.find({})
+    .then((users) => res.send(users))
+    .catch(next);
 };
 
 // ПОЛЬЗОВАИТЕЛЬ ПО АЙДИ
